@@ -1,0 +1,51 @@
+<div class="login-wrapper">
+  <div class="welcome-box">
+    <h2 class="welcome-title">
+      <span class="wave-hand">👋</span> Welkom!
+    </h2>
+    <p class="welcome-subtitle">
+      Database normalisatie leren? Wacht niet langer en kom verder in de wereld van de 1e, 2e, en 3e normaalvorm!
+    </p>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="login-container">
+    <h1 class="login-title"> Inloggen 🔐</h1>
+    <form (submit)="login()" class="login-form">
+      <label for="username">Gebruikersnaam</label>
+      <input id="username" type="text" [(ngModel)]="username" name="username" required />
+
+      <label for="password">Wachtwoord</label>
+      <input id="password" type="password" [(ngModel)]="password" name="password" required />
+      <button type="submit" class="primary-btn">Log in</button>
+    </form>
+
+    <p *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+    <button class="primary-btn" (click)="openRegisterModal()">Nieuw? Registreer hier</button>
+    <label> <i> Wachtwoord vergeten? Registreer je dan opnieuw.
+      </i></label>
+  </div>
+
+  <!-- Register Modal -->
+  <div *ngIf="showRegisterModal" class="info-modal-overlay" (click)="closeRegisterModal()">
+    <div class="info-modal-content" (click)="$event.stopPropagation()">
+      <h2><span class="bounce-icon">📝</span> Registreer</h2>
+      <form (submit)="register()" class="login-form">
+        <label for="reg-username">Gebruikersnaam <i> (Bijvoorbeeld: JanSmit)</i></label>
+        <input id="reg-username" type="text" [(ngModel)]="regUsername" name="regUsername" required />
+
+        <label for="reg-displayName">Weergavenaam <i>(Bijvoorbeeld: Jan Ricardo Smit)</i></label>
+        <input id="reg-displayName" type="text" [(ngModel)]="regDisplayName" name="regDisplayName" required />
+
+        <label for="reg-password">Wachtwoord <i> (Er zijn geen wachtwoord-eisen)</i></label>
+        <input id="reg-password" type="password" [(ngModel)]="regPassword" name="regPassword" required />
+
+        <div class="info-buttons">
+          <button type="submit" class="primary-btn">Registeer</button>
+          <button type="button" class="cancel-btn" (click)="closeRegisterModal()">Annuleren</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

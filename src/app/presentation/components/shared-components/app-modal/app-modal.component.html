@@ -1,0 +1,28 @@
+<!-- Generic Summary Modal For 1/2/3NF -->
+<div class="modal-overlay" *ngIf="showModalSummary">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><b>{{ titleSummary }}</b></h2>
+    </div>
+    <div class="modal-body styled-dynamic-content">
+      <div [innerHTML]="contentSummary"></div> 
+    </div>
+    <button class="btn-close" (click)="closeSummary()">Sluit</button>
+  </div>
+</div>
+
+<!-- Generic Cheat Confirmation Modal For 1/2/3NF -->
+<div class="modal-overlay" *ngIf="showModalCheat">
+  <div class="modal-content cheat">
+    <div class="modal-header">
+      <h2><b>{{ titleCheat }}</b></h2>
+    </div>
+    <div class="modal-body styled-dynamic-content">
+      <div [innerHTML]="contentCheat"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" (click)="closeCheat()">🙅 Ik doe het zelf</button>
+      <button class="btn btn-secondary btn-spieken" (click)="confirmCheat.emit()">👀 Ja, ik wil spieken</button>
+    </div>
+  </div>
+</div>

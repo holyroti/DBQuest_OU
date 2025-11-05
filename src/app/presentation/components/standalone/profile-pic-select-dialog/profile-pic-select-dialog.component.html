@@ -1,0 +1,16 @@
+<!-- Component to change the current profile picture (pfp)-->
+<div class="info-modal-overlay" (click)="close()">
+  <div class="info-modal-content profile-modal" (click)="$event.stopPropagation()">
+    <h2 class="info-title">🎨 Update je look!</h2>
+
+    <div class="icon-grid">
+      <img *ngFor="let icon of availableIcons" [src]="icon" [class.selected]="icon === selectedIcon"
+        (click)="selectIcon(icon)" alt="Avatar" />
+    </div>
+
+    <div class="info-buttons">
+      <button class="btn btn-secondary" (click)="close()">Sluit</button>
+      <button class="btn btn-primary" (click)="save()">Opslaan</button>
+    </div>
+  </div>
+</div>

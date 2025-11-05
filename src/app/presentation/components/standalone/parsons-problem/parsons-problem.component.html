@@ -1,0 +1,72 @@
+<div class="parsons-header">
+  <!-- Renders the toolbar with 1st, 2nd, 3rd stage on top of the screen-->
+  <app-toolbar [username]="username" [isPlaying]="true" [stage]="stage" [stages]="stages"></app-toolbar>
+</div>
+
+<br>
+
+<div class="workflow-container">
+  <!-- Renders the main game dynamically per stage (1-4) -->
+
+  <!-- Display the 1NF game component with the questionID + stageId (=1) -->
+  <ng-container *ngIf="stage === 1">
+    <app-parsons-1nf [questionId]="selectedQuestionId" [currentStage]="stage" (stageChange)="navigateToStage($event)"
+      (completed)="nextStage()">
+    </app-parsons-1nf>
+  </ng-container>
+
+  <!-- Display the 2NF game component with the questionID + stageId (=1) -->
+  <ng-container *ngIf="stage === 2">
+    <app-parsons-2nf [questionId]="selectedQuestionId" [currentStage]="stage" (stageChange)="navigateToStage($event)"
+      (completed)="nextStage()">
+    </app-parsons-2nf>
+  </ng-container>
+
+  <!-- Display the 3NF game component with the questionID + stageId (=1) -->
+  <ng-container *ngIf="stage === 3">
+    <app-parsons-3nf [questionId]="selectedQuestionId" [currentStage]="stage" (stageChange)="navigateToStage($event)"
+      (badgeAward)="openBadgeModal($event)" (nextQuestion)="handleStage3Complete($event)">
+    </app-parsons-3nf>
+  </ng-container>
+
+  <!-- Display Badge Reward Modal along confetti -->
+  <ng-container *ngIf="stage === 4">
+    <div class="badge-modal">
+      <!-- Confetti Layer -->
+      <div class="confetti-container">
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+      </div>
+
+      <!-- Badge modal pop-up content -->
+      <div class="badge-modal-content">
+        <h2> Tijd om je Beloning te Claimen!</h2>
+        <!-- Blurred section for badge + message -->
+        <div class="badge-blurred" [ngClass]="{'revealed': badgeRevealed}">
+          <img [src]="badgeImage || '/assets/images/badges/default.png'" alt="Badge" class="badge-image">
+          <p>{{ badgeMessage }}</p>
+        </div>
+        <!-- Reveal button (unblurred) -->
+        <div *ngIf="!badgeRevealed">
+          <button class="btn btn-primary reveal" (click)="revealBadge()">Onthul 🎭</button>
+        </div>
+        <!-- Next Question button (unblurred) -->
+        <div *ngIf="badgeRevealed">
+          <button class="btn btn-secondary" (click)="retryCurrentQuestion()"> Opnieuw ↩️</button>
+          <button class="btn btn-secondary" (click)="toHome()">Home 🏠</button>
+          <button class="btn btn-next" (click)="nextQuestionAndCloseBadge()">Volgende Vraag</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

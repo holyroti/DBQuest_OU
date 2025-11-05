@@ -1,0 +1,219 @@
+<div class="sticky-bar">
+  <div class="button-group">
+
+    <!-- Left-side buttons -->
+    <div class="left-buttons">
+      <img class="anna-thumb"
+        [src]="currentStage > 1 ? '/assets/images/question-prev.png' : '/assets/images/question-prev-disabled.png'"
+        alt="Vorige" (click)="currentStage > 1 && emitPreviousStage()" [class.disabled]="currentStage <= 1" />
+      <button class="btn btn-secondary btn-bijles" (click)="toggleModal('character', true)">
+        <img class="anna-thumb" src="/assets/images/anna-thumbnail.png" alt="Anna" />
+        Bijles
+      </button>
+
+      <button class="btn btn-secondary btn-spieken" (click)="toggleModal('cheat', true)"
+        [disabled]="!state.questionLoaded || state.isCheating">
+        <ng-container *ngIf="!state.isCheating">Spieken 👀</ng-container>
+        <ng-container *ngIf="state.isCheating">Bezig met spieken...</ng-container>
+      </button>
+
+      <button class="btn btn-secondary btn-reset" (click)="resetPuzzle()">Reset 🔄</button>
+      <img class="anna-thumb"
+        [src]="currentStage < 3 ? '/assets/images/question-next.png' : '/assets/images/question-next-disabled.png'"
+        alt="Volgende" (click)="currentStage < 3 && emitNextStage()" [class.disabled]="currentStage >= 3" />
+    </div>
+
+
+    <!-- Right-side next buttons -->
+    <div class="right-buttons">
+      <ng-container *ngIf="state.showNextButton; else placeholder">
+        <button class="btn btn-next btn-summary" (click)="toggleModal('summary', true)">Samenvatting 📓</button>
+        <button class="btn btn-next btn-volgende" (click)="navigateToNextQuestion()">Beloning 🏆➡️</button>
+      </ng-container>
+
+      <ng-template #placeholder>
+        <button class="btn btn-next invisible">Samenvatting</button>
+        <button class="btn btn-next invisible">Volgende</button>
+      </ng-template>
+      <button class="btn btn-feedback" (click)="getFeedback()">Nakijken ✅</button>
+
+    </div>
+
+  </div>
+</div>
+
+
+<div class="game-container">
+
+
+  <div class="vragenoverzicht">
+    <span class="label-pk">Vraag {{this.questionId}} </span>
+    <span class="label-3nf">Stap 3: Derde Normaalvorm </span>
+  </div>
+
+  <div class="question-section visual-novel-bubble" *ngIf="state.currentQuestion; else loading">
+    <span class="question-text" [innerHTML]="state.currentQuestion.question"></span>
+
+    <div class="hint-container">
+      <span class="hint-icon">ℹ️</span>
+      <span class="hint-text">
+        <b> {{ state.currentQuestion.instructions }}</b>
+      </span>
+    </div>
+    <br><br>
+
+    <button class="btn btn-primary button-container" (click)="toggleModal('table', true)">
+      Bekijk Tabellen
+      <img src="/assets/images/table.png" class="table-icon" />
+    </button>
+    <br><br>
+    <div class="question-container blue-animation">
+      <span class="question-text">{{ state.currentStepText }}</span>
+    </div>
+
+  </div>
+
+  <ng-template #loading>
+    <p class="loading-text">De vragen zijn aan het laden... Een momentje!</p>
+  </ng-template>
+
+
+  <app-app-modal [titleSummary]="'2NV Tabellen'" [contentSummary]="state.currentQuestion?.htmlContent || ''"
+    [showModalSummary]="state.modals.table" (closeModalSummary)="toggleModal('table', false)"></app-app-modal>
+
+  <app-app-modal [titleSummary]="'Samenvatting'" [contentSummary]="state.currentQuestion?.summary || ''"
+    [showModalSummary]="state.modals.summary" (closeModalSummary)="toggleModal('summary', false)"></app-app-modal>
+
+
+
+  <!-- Anna Modal -->
+  <div id="annaModal" class="modal" *ngIf="state.showCharacterModal">
+    <div class="modal-content">
+      <span class="close" (click)="toggleModal('character', false)">&times;</span>
+
+
+      <app-visual-novel [dialoguesInput]="state.currentCharacterDialogues" [currentQuestionId]="questionId || 1"
+        (closeModal)="toggleModal('character', false)">
+      </app-visual-novel>
+
+    </div>
+  </div>
+
+
+
+
+  <!-- TABLE INPUTS (User-Created Tables) -->
+  <!-- TABLE INPUTS (User-Created Tables) -->
+  <div class="row d-flex justify-content-center">
+    <div class="col-12">
+      <div class="table-container mt-4 example-container styled-dynamic-content">
+        <div *ngFor="let table of state.userInputTables; let tableIndex = index" class="table-card">
+          <div class="row align-items-center mb-3">
+            <div class="col-12 text-center widget-text">
+              <span class="drag-number">
+                Creëer je <span class="label-3nf fs18"> {{ table.tableName || '___' }} </span> &nbsp; Tabel:
+
+              </span>
+
+
+
+            </div>
+          </div>
+
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Kolomnaam</th>
+                <th>Sleuteltype</th>
+                <th>Refereert naar tabel</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="table?.columns">
+              <tr *ngFor="let column of table.columns; let columnIndex = index">
+
+                <!-- Kolomnaam TD -->
+                <td>
+                  <select class="form-select btn btn-primary selector gray" [(ngModel)]="column.columnName"
+                    [disabled]="state.showAnswers" [ngClass]="{
+                'select-correct': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'kolom')] === 'correct',
+                'select-incorrect': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'kolom')] === 'incorrect',
+                'cheat-glow': column.cheatAnimating
+              }">
+                    <option value="" disabled>Kies Kolom</option>
+                    <option *ngFor="let colName of state.availableColumnNames" [value]="colName">
+                      {{ colName }}
+                    </option>
+                  </select>
+                  <div *ngIf="state.feedbackGiven" class="mt-1 px-2 py-1" [ngClass]="{
+             'feedback-text': true,
+             'feedback-correct': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'kolom')] === 'correct',
+             'feedback-incorrect': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'kolom')] === 'incorrect',
+       'feedback-placeholder': !state.detailedFeedbackMessages.kolom[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'kolom')]
+           }">
+                    {{ state.detailedFeedbackMessages.kolom[parsons3NFService.getFeedbackKey(column, table, columnIndex,
+                    'kolom')] || '' }}
+                  </div>
+                </td>
+
+                <!-- Sleuteltype TD -->
+                <td>
+                  <select class="form-select btn btn-primary selector gray" [(ngModel)]="column.keyType" [ngClass]="{
+                'select-correct': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'keyType')] === 'correct',
+                'select-incorrect': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'keyType')] === 'incorrect',
+                'cheat-glow': column.cheatAnimating
+              }">
+                    <option value="NONE">Normale Kolom</option>
+                    <option value="PK">Primaire Sleutel</option>
+                    <option value="FK">Vreemde Sleutel</option>
+                  </select>
+                  <div *ngIf="state.feedbackGiven" class="mt-1 px-2 py-1" [ngClass]="{
+             'feedback-text': true,
+             'feedback-correct': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'keyType')] === 'correct',
+             'feedback-incorrect': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'keyType')] === 'incorrect',
+'feedback-placeholder': !state.detailedFeedbackMessages.keyType[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'keyType')]
+           }">
+                    {{ state.detailedFeedbackMessages.keyType[parsons3NFService.getFeedbackKey(column, table,
+                    columnIndex, 'keyType')] || '' }}
+                  </div>
+                </td>
+
+                <!-- Referentie TD -->
+                <td>
+                  <select *ngIf="column.keyType === 'FK'" class="form-select btn btn-primary selector gray"
+                    [(ngModel)]="column.referencesTableId" [ngClass]="{
+                'select-correct': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'reference')] === 'correct',
+                'select-incorrect': state.feedbackGiven && state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'reference')] === 'incorrect',
+                'cheat-glow': column.cheatAnimating
+              }">
+                    <option [ngValue]="null" disabled>Selecteer Referentie</option>
+                    <option *ngFor="let ref of state.availableReferences" [ngValue]="ref.id">
+                      {{ ref.name }}
+                    </option>
+                  </select>
+                  <div *ngIf="state.feedbackGiven && column.keyType === 'FK'" class="mt-1 px-2 py-1" [ngClass]="{
+             'feedback-text': true,
+             'feedback-correct': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'reference')] === 'correct',
+             'feedback-incorrect': state.highlightedStatus[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'reference')] === 'incorrect',
+'feedback-placeholder': !state.detailedFeedbackMessages.reference[parsons3NFService.getFeedbackKey(column, table, columnIndex, 'reference')]
+           }">
+                    {{ state.detailedFeedbackMessages.reference[parsons3NFService.getFeedbackKey(column, table,
+                    columnIndex, 'reference')] || '' }}
+                  </div>
+                </td>
+
+              </tr>
+            </tbody>
+
+          </table>
+
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <app-app-modal [titleCheat]="'Weet je het zeker?'"
+    [contentCheat]="'Als je nu gaat spieken, ontvang je geen badge voor deze vraag. Wil je doorgaan?'"
+    [showModalCheat]="state.showCheatConfirmModal" (closeModalCheat)="toggleModal('cheat', false)"
+    (confirmCheat)="confirmCheat()" [ngClass]="'cheat-modal'"></app-app-modal>

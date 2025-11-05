@@ -1,0 +1,221 @@
+<div class="sticky-bar">
+  <div class="button-group">
+    <!-- Left-side buttons -->
+    <div class="left-buttons">
+      <img class="larissa-thumb"
+        [src]="currentStage > 1 ? '/assets/images/question-prev.png' : '/assets/images/question-prev-disabled.png'"
+        alt="Vorige" (click)="currentStage > 1 && emitPreviousStage()" [class.disabled]="currentStage <= 1" />
+      <button class="btn btn-secondary btn-bijles" (click)="toggleModal('character', true)">
+        <img class="larissa-thumb" src="/assets/images/larissa-thumbnail.png" alt="Larissa" />
+        Bijles
+      </button>
+
+      <!-- Bijles / Visual Novel Modal -->
+      <div id="larissaModal" class="modal" *ngIf="state.showCharacterModal">
+        <div class="modal-content">
+          <span class="close" (click)="toggleModal('character', false)">&times;</span>
+
+          <app-visual-novel [dialoguesInput]="state.currentCharacterDialogues" [currentQuestionId]="questionId || 1"
+            (closeModal)="toggleModal('character', false)">
+          </app-visual-novel>
+        </div>
+      </div>
+
+
+      <button class="btn btn-secondary btn-spieken" (click)="runCheat('Larissa')"
+        [disabled]="!state.questionLoaded || state.isCheating">
+        <ng-container *ngIf="!state.isCheating">Spieken 👀</ng-container>
+        <ng-container *ngIf="state.isCheating">Bezig met spieken...</ng-container>
+      </button>
+
+      <button class="btn btn-secondary btn-reset" (click)="clickResetPuzzle()">Reset 🔄</button>
+
+      <img class="larissa-thumb"
+        [src]="currentStage < 3 ? '/assets/images/question-next.png' : '/assets/images/question-next-disabled.png'"
+        alt="Volgende" (click)="currentStage < 3 && emitNextStage()" [class.disabled]="currentStage >= 3" />
+    </div>
+
+    <!-- Right-side next buttons -->
+    <div class="right-buttons">
+      <ng-container *ngIf="state.showNextButton; else placeholder">
+        <button class="btn btn-next btn-summary" (click)="toggleModal('summary', true)">Samenvatting 📓</button>
+        <button class="btn btn-next btn-volgende" (click)="navigateToNextQuestion()">Volgende Stap ➡️</button>
+      </ng-container>
+      <ng-template #placeholder>
+        <button class="btn btn-next invisible">Samenvatting</button>
+        <button class="btn btn-next invisible">Volgende</button>
+      </ng-template>
+
+      <button class="btn btn-feedback" (click)="getFeedback()">Nakijken ✅</button>
+    </div>
+  </div>
+</div>
+
+<div class="game-container">
+  <!-- HEADER / QUESTION SECTION -->
+  <div class="vragenoverzicht">
+    <span class="label-pk">Vraag {{ questionId }} </span>
+    <span class="label-2nf">Stap 2: Tweede Normaalvorm </span>
+  </div>
+
+  <div class="question-section visual-novel-bubble">
+    <span class="question-text" [innerHTML]="currentQuestion?.title"></span>
+
+    <div class="hint-container">
+      <span class="hint-icon">ℹ️</span>
+      <span class="hint-text"><b>{{ currentQuestion?.instructions }}</b></span>
+    </div>
+
+    <br /><br />
+    <button class="btn btn-primary button-container" (click)="toggleModal('table', true)">
+      Bekijk Tabellen
+      <img src="/assets/images/table.png" class="table-icon" />
+    </button>
+
+    <app-app-modal [titleSummary]="'1NF Tabel(len)'" [contentSummary]="currentQuestion?.htmlContent || ''"
+      [showModalSummary]="state.showTableModal" (closeModalSummary)="toggleModal('table', false)">
+    </app-app-modal>
+
+  </div>
+
+  <!-- DRAG & DROP SECTION -->
+  <div class="row" *ngIf="state.questionLoaded && currentQuestion as cq; else loading">
+    <!-- LEFT COLUMN: Available Columns -->
+    <div class="col-6">
+      <div class="example-container sticky-left">
+        <span class="widget-text">Sleep de onderstaande <span class="drag-number">kolommen</span>:</span>
+
+        <div class="mb-4 styled-dynamic-content">
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <label class="yellow">{{ state.availableColumns.length }}</label>&nbsp; Beschikbare Kolommen
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="drag-scroll-wrapper">
+                    <div cdkDropList #availableList="cdkDropList" id="availableColumnsList"
+                      [cdkDropListData]="state.availableColumns" [cdkDropListConnectedTo]="tableLists"
+                      (cdkDropListDropped)="onDrop($event)" class="list-group example-list">
+                      <div *ngFor="let column of state.availableColumns; trackBy: trackByColumn" cdkDrag
+                        class="list-group-item example-box column-row" [@itemAnimation]="{
+                          value: '',
+                          params: {
+                            enterTransform: state.dropDirection === 'right' ? 'translateX(100%)' : 'translateX(-100%)'
+                          }
+                        }" [ngClass]="{
+                          'cheat-glow': state.cheatAnimating &&
+                            column.columnName === state.currentlyCheatingColumn?.columnName
+                        }">
+                        <span class="column-name">{{ column.columnName }}</span>
+                        <span class="label-container">
+                          <span *ngIf="isPrimaryKey(column)" class="label-pk">PK</span>
+                          <span *ngIf="isNormalKey(column)" class="label-normal">NORMAAL</span>
+                          <span *ngIf="isForeignKey(column) || column.referencesTable" class="label-fk">FK</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Table Assignments -->
+    <div class="col-6">
+      <div class="example-container">
+        <span class="widget-text">Naar de corresponderende <span class="drag-number">tabellen</span>:</span>
+
+        <div *ngFor="let table of cq.twoNFTables; trackBy: trackByTable" class="mb-4 styled-dynamic-content">
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <label class="table-title">Tabel <span class="label-2nf">{{ table.tableName || '___'
+                      }}</span></label><br />
+                  <span class="column-hint">
+                    <i>(Plaats hier <span class="yellow">{{ getExpectedColumnCount(table.tableName) }}</span>
+                      kolommen)</i>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="drop-wrapper">
+                    <div cdkDropList #tableList="cdkDropList" [id]="table.tableName + 'List'"
+                      [cdkDropListData]="state.columnAssignments[table.tableName]" [cdkDropListConnectedTo]="tableLists"
+                      (cdkDropListDropped)="onDrop($event)" class="example-list">
+                      <div *ngFor="let column of state.columnAssignments[table.tableName]; trackBy: trackByColumn"
+                        cdkDrag class="example-box column-wrapper" [@itemAnimation]="{
+                          value: '',
+                          params: {
+                            enterTransform: state.dropDirection === 'left' ? 'translateX(-100%)' : 'translateX(100%)'
+                          }
+                        }" [ngClass]="{
+                          'shake':
+                            state.feedbackGiven &&
+                            state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'incorrect',
+                          'correct-glow':
+                            state.feedbackGiven &&
+                            state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'correct',
+                          'cheat-glow':
+                            state.cheatAnimating &&
+                            column.columnName === state.currentlyCheatingColumn?.columnName
+                        }">
+                        <div class="column-row">
+                          <span class="column-name">{{ column.columnName }}</span>
+                          <span class="label-container">
+                            <span *ngIf="isPrimaryKey(column)" class="label-pk">PK</span>
+                            <span *ngIf="isNormalKey(column)" class="label-normal">NORMAAL</span>
+                            <span *ngIf="isForeignKey(column) || column.referencesTable" class="label-fk">FK</span>
+                          </span>
+                        </div>
+
+                        <div *ngIf="state.feedbackGiven" class="feedback-text" [ngClass]="{
+                            'feedback-correct':
+                              state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'correct',
+                            'feedback-incorrect':
+                              state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'incorrect'
+                          }">
+                          <span
+                            *ngIf="state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'correct'">✅</span>
+                          <span *ngIf="
+                              state.highlightedStatus[feedbackKeyForColumn(column, table.tableName)] === 'incorrect'
+                            ">❌</span>
+                          {{ state.feedbackMessages[feedbackKeyForColumn(column, table.tableName)] || '' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="references-info" *ngIf="getReferencesForTable(table).length > 0">
+                    Refereert naar de tabel(len): <strong>{{ getReferencesForTable(table).join(', ') }}</strong>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loading>
+    <p class="loading-text">De vragen zijn aan het laden.. Een momentje!...</p>
+  </ng-template>
+
+  <app-app-modal [titleSummary]="'Samenvatting'" [contentSummary]="state.summaryModalContent || ''"
+    [showModalSummary]="state.showSummaryModal" (closeModalSummary)="toggleModal('summary', false)">
+  </app-app-modal>
+
+</div>

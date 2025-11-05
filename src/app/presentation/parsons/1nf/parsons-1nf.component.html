@@ -1,0 +1,139 @@
+<div class="sticky-bar">
+  <div class="button-group">
+    <!-- Left-side buttons -->
+    <div class="left-buttons">
+      <img class="danny-thumb"
+        [src]="currentStage > 1 ? '/assets/images/question-prev.png' : '/assets/images/question-prev-disabled.png'"
+        alt="Vorige" (click)="currentStage > 1 && emitPreviousStage()" [class.disabled]="currentStage <= 1" />
+
+      <button class="btn btn-secondary btn-bijles" (click)="toggleModal('character', true)">
+        <img class="danny-thumb" src="/assets/images/danny-thumbnail.png" alt="Danny" />
+        Bijles
+      </button>
+
+
+      <button class="btn btn-secondary btn-spieken" (click)="runCheat('Danny')"
+        [disabled]="!state.questionLoaded || state.isCheating">
+
+        <ng-container *ngIf="!state.isCheating">Spieken 👀</ng-container>
+        <ng-container *ngIf="state.isCheating">Bezig met spieken...</ng-container>
+      </button>
+
+
+      <button class="btn btn-secondary btn-reset" (click)="clickResetPuzzle()">Reset 🔄</button>
+
+      <img class="danny-thumb"
+        [src]="currentStage < 3 ? '/assets/images/question-next.png' : '/assets/images/question-next-disabled.png'"
+        alt="Volgende" (click)="currentStage < 3 && emitNextStage()" [class.disabled]="currentStage >= 3" />
+    </div>
+
+    <!-- Right-side buttons -->
+    <div class="right-buttons">
+      <ng-container *ngIf="state.showNextButton; else placeholder">
+        <button class="btn btn-next btn-summary" (click)="toggleModal('table', true)">Samenvatting 📓</button>
+        <button class="btn btn-next btn-volgende" (click)="navigateToNextQuestion()">Volgende Stap ➡️</button>
+      </ng-container>
+
+      <ng-template #placeholder>
+        <button class="btn btn-next invisible">Samenvatting</button>
+        <button class="btn btn-next invisible">Volgende</button>
+      </ng-template>
+    </div>
+
+    <button class="btn btn-feedback" (click)="getFeedback()">Nakijken ✅</button>
+  </div>
+</div>
+
+<!-- MAIN Game CONTAINER -->
+<div class="game-container">
+  <div class="vragenoverzicht">
+    <span class="label-pk">Vraag {{ questionId }} </span>
+    <span class="label-1nf">Stap 1: Eerste Normaalvorm </span>
+  </div>
+
+  <!-- HEADER / QUESTION SECTION -->
+  <div class="question-section visual-novel-bubble" *ngIf="currentQuestion">
+    <span class="question-text" [innerHTML]="currentQuestion.question"></span>
+
+    <div class="hint-container" *ngIf="currentQuestion?.instructions">
+      <span class="hint-icon">ℹ️</span>
+      <span class="hint-text"><b>{{ currentQuestion.instructions }}</b></span>
+    </div>
+
+
+    <br /><br />
+    <button class="btn btn-primary button-container" (click)="toggleModal('table', true)">
+      Bekijk Tabellen
+      <img src="/assets/images/table.png" class="table-icon" />
+    </button>
+  </div>
+
+  <app-app-modal [titleSummary]="'Ongenormaliseerde Tabel(len)'" [contentSummary]="currentQuestion?.htmlContent || ''"
+    [showModalSummary]="state.showTableModal" (closeModalSummary)="toggleModal('table', false)">
+  </app-app-modal>
+
+
+  <br />
+
+  <!-- DRAG & DROP SECTION -->
+  <div class="drag-drop-section">
+    <!-- LEFT COLUMN -->
+    <div class="drag-column">
+      <h3>Sleep de juiste antwoorden.. </h3>
+      <div cdkDropList #leftList="cdkDropList" [cdkDropListData]="state.availableItems"
+        [cdkDropListConnectedTo]="[rightList]" (cdkDropListDropped)="onDrop($event)" class="example-list">
+        <div *ngFor="let item of state.availableItems"
+          [@itemAnimation]="{ value: '', params: { direction: 'translateX(-100%)' } }" cdkDrag class="example-box">
+          <b>{{ item.text }}</b>
+          <ng-template cdkDragPreview>
+            <div class="example-box drag-preview"><b>{{ item.text }} </b></div>
+          </ng-template>
+          <ng-template cdkDragPlaceholder>
+            <div class="example-box drag-placeholder"></div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="drag-column">
+      <h3>..naar <span class="label-1nf fs18">hier! </span></h3>
+      <div cdkDropList #rightList="cdkDropList" [cdkDropListData]="state.placedItems"
+        [cdkDropListConnectedTo]="[leftList]" (cdkDropListDropped)="onDrop($event)" class="example-list">
+        <div *ngFor="let item of state.placedItems" cdkDrag [cdkDragData]="item" class="example-box" [ngClass]="{
+            'item-highlight': state.feedbackGiven,
+            'shake': state.feedbackGiven && state.highlightedStatus[item.id] === 'incorrect',
+            'correct-glow': state.feedbackGiven && state.highlightedStatus[item.id] === 'correct',
+            'cheat-glow': item.cheatAnimating
+          }">
+          <b>{{ item.text }}</b>
+
+          <!-- Feedback -->
+          <div *ngIf="state.feedbackGiven" class="feedback-text" [ngClass]="{
+              'feedback-correct': state.highlightedStatus[item.id] === 'correct',
+              'feedback-incorrect': state.highlightedStatus[item.id] === 'incorrect'
+            }">
+            <span *ngIf="state.highlightedStatus[item.id] === 'correct'">✅</span>
+            <span *ngIf="state.highlightedStatus[item.id] === 'incorrect'">❌</span>
+            {{ state.feedbackMessages[item.id] || '' }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Modal -->
+  <app-app-modal [titleSummary]="'Samenvatting'" [contentSummary]="currentQuestion?.summary || ''"
+    [showModalSummary]="state.showSummaryModal" (closeModalSummary)="state.showSummaryModal = false"></app-app-modal>
+
+  <div id="myModal" class="modal" *ngIf="state.showCharacterModal">
+    <div class="modal-content">
+      <span class="close" (click)="toggleModal('character', false)">&times;</span>
+
+      <app-visual-novel [dialoguesInput]="state.currentCharacterDialogues" [currentQuestionId]="questionId || 1"
+        (closeModal)="toggleModal('character', false)">
+      </app-visual-novel>
+    </div>
+  </div>
+
+</div>

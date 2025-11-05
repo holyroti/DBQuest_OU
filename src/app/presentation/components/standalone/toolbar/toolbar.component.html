@@ -1,0 +1,90 @@
+<mat-toolbar class="toolbar row bg-transparent col-12">
+  <!-- User Info -->
+  <div class="user-info col-3" title="Profielfoto" (click)="openProfilePicSelectDialog()">
+    <img [src]="userIcon" alt="User Avatar" class="avatar animated-avatar" />
+    <span>{{ username }}</span>
+  </div>
+
+  <div class="progress-and-achievements col-6">
+    <!-- Only show if isPlaying = true -->
+    <ng-container *ngIf="isPlaying">
+      <div class="progress-bar-container">
+        <!-- Angular Material Progress Bar -->
+        <mat-progress-bar mode="determinate" [value]="
+            stages && stages.length > 1 
+              ? ((stage - 1) / (stages.length - 1)) * 100 
+              : 0
+          ">
+        </mat-progress-bar>
+
+        <!-- Progress Steps overlay -->
+        <div class="progress-steps">
+          <div *ngFor="let stageLabel of stages; let i = index" class="progress-step" [style.left.%]="
+                stages && stages.length > 1 
+                  ? (i / (stages.length - 1)) * 100 
+                  : 0
+            " [ngClass]="{'active-step': (i + 1) === stage, 'completed-step': (i + 1) < stage}">
+            <div class="step-circle">{{ i + 1 }}</div>
+            <div class="step-label">{{ stageLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="toolbar-actions col-3">
+    <span class="col-1">
+      <button mat-icon-button (click)="navigateHome()" title="Home" class="toolbar-actions">
+        <img src="assets/images/home.png" alt="Home" class="icon-img" />
+      </button>
+    </span>
+
+    <span class="col-1">
+      <button mat-icon-button (click)="openInfo()" title="Informatie" class="toolbar-actions">
+        <img src="assets/images/info1.png" alt="info" class="icon-img" />
+      </button>
+    </span>
+
+    <span class="col-1">
+      <button mat-icon-button (click)="logout()" title="Log uit" class="toolbar-actions logout">
+        <img src="assets/images/logout1.png" alt="logout" class="icon-img" />
+      </button>
+    </span>
+  </div>
+</mat-toolbar>
+
+<!-- Info Modal Overlay -->
+<div *ngIf="showInfo" class="info-modal-overlay" (click)="closeInfo()">
+  <div class="info-modal-content" (click)="$event.stopPropagation()">
+    <h2 class="info-title">📘 Over het spel</h2>
+    <p class="info-description">
+      Dit spel helpt je met het begrijpen van de <strong> database normalisatie theorie </strong> van de Open
+      Universiteit <strong>tot de derde normaalvorm! </strong>.
+      Ga op bijles in een visual novel experience, maak vragen, spiek en verdien badges! ⭐
+      <br> <br>
+      Gemaakt t.b.v. het afstuderen van Rohit Paltoe voor de Master Software Engineering met het onderzoeksonderwerp:
+      "Gamified Parsons Problems for Learning Database Normalization" 🎓.
+      <br> <br>
+      Het wordt erg gewaardeerd om na het spelen de questionnaire in te vullen. Dit zal ons research erg op weg helpen!
+      Alvast bedankt ✏️😄 :)
+      <a href="https://ls.ou.nl/145668?newtest=Y&lang=nl">
+        <b><u> Vul hier in en help ons!😄</u> </b>
+      </a>
+      <br> <br>
+
+      <span class="info-buttons d-flex">
+        <i class="blue"> Vragen en/of opmerkingen? ⁉️ Stuur gerust een mail naar <strong> <u>
+              r.paltoe&#64;student.ou.nl</u></strong></i>
+      </span>
+
+      <span class="info-buttons d-flex">
+        <img src="/assets/images/logo-ou.png" class="logo-ou ">
+      </span>
+    </p>
+
+    <div class="info-buttons">
+      <button mat-button color="primary" (click)="closeInfo()">Sluit</button>
+    </div>
+  </div>
+</div>

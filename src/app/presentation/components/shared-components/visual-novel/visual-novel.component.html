@@ -1,0 +1,96 @@
+<div class="vn-container">
+  <!-- Background image -->
+  <img [src]="currentBackground" class="background" alt="Background" />
+
+  <!-- Characters: Danny, Larissa, Anna -->
+  <div class="character-container char1" [ngClass]="{ 'breathe-animation': charStates[0].isBreatheActive }"
+    *ngIf="charStates[0].visible">
+    <img [src]="charStates[0].base" class="character-base" alt="Danny Base" />
+    <img [src]="charStates[0].eyes" class="character-eyes" alt="Danny Eyes" />
+    <img [src]="charStates[0].mouth" class="character-mouth" alt="Danny Mouth" />
+  </div>
+
+  <div class="character-container char2" [ngClass]="{ 'breathe-animation': charStates[1].isBreatheActive }"
+    *ngIf="charStates[1].visible">
+    <img [src]="charStates[1].base" class="character-base" alt="Larissa Base" />
+    <img [src]="charStates[1].eyes" class="character-eyes" alt="Larissa Eyes" />
+    <img [src]="charStates[1].mouth" class="character-mouth" alt="Larissa Mouth" />
+  </div>
+
+  <div class="character-container char3" [ngClass]="{ 'breathe-animation': charStates[2].isBreatheActive }"
+    *ngIf="charStates[2].visible">
+    <img [src]="charStates[2].base" class="character-base" alt="Anna Base" />
+    <img [src]="charStates[2].eyes" class="character-eyes" alt="Anna Eyes" />
+    <img [src]="charStates[2].mouth" class="character-mouth" alt="Anna Mouth" />
+  </div>
+  <img src="assets/images/no-sound.png" class="no-sound" />
+
+  <!-- Dialogue box -->
+  <div class="dialogue-box">
+
+    <!-- HTML Table renderer-->
+    <table *ngIf="currentDialogue?.table">
+      <thead>
+        <tr>
+          <th *ngFor="let header of currentDialogue?.table?.headers">{{ header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of currentDialogue?.table?.rows">
+          <td *ngFor="let cell of row">
+            <ng-container *ngIf="isNestedTable(cell); else plainText">
+              <table class="nested-table">
+                <thead>
+                  <tr>
+                    <th *ngFor="let nestedHeader of cell.headers">{{ nestedHeader }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let nestedRow of cell.rows">
+                    <td *ngFor="let nestedCell of nestedRow">{{ nestedCell }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ng-container>
+            <ng-template #plainText>{{ cell }}</ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Dialogue box -->
+    <p>{{ currentDialogue.text }}</p>
+
+    <!-- IFrames for potential images or videos -->
+    <iframe *ngIf="currentDialogue.videoUrl" [src]="sanitizeUrl(currentDialogue.videoUrl || '')" width="560"
+      height="315" frameborder="0" allowfullscreen></iframe>
+    <img *ngIf="currentDialogue.imageUrl" [src]="currentDialogue.imageUrl" alt="Additional Image"
+      style="max-width: 100%; max-height: 300px; margin: 10px 0;" />
+
+    <!-- Dialogue response buttons -->
+    <div *ngIf="currentDialogue.choices?.length">
+      <button *ngFor="let choice of currentDialogue.choices" (click)="advanceDialogue(choice.next)">
+        {{ choice.text }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation arrows -->
+
+  <!-- Left arrow always displayed to go back if available -->
+  <div class="nav-arrow left-arrow" (click)="previousDialogue()" *ngIf="dialogueIndex > 0">
+    <img src="/assets/images/left.png" class="left-arrow">
+  </div>
+
+  <!-- Right arrow displayed only if there's a valid next property and no choices -->
+  <div class="nav-arrow right-arrow" (click)="advanceDialogue()" *ngIf="hasNextDialogue()">
+    <img src="/assets/images/right.png" class="right-arrow">
+  </div>
+
+  <!-- Achievement Modal - if needed to reward badges after going trough the whole visual novel -->
+  <div *ngIf="currentAchievement" class="achievement-modal">
+    <h2>{{ currentAchievement.title }}</h2>
+    <img [src]="currentAchievement.badgeImage" alt="Achievement Badge" />
+    <p>{{ currentAchievement.description }}</p>
+    <button (click)="closeAchievementModal()">Continue</button>
+  </div>
+</div>

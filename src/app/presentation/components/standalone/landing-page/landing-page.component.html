@@ -1,0 +1,114 @@
+<div class="parsons-header">
+  <app-toolbar [username]="username"></app-toolbar>
+</div>
+
+<div class="landing-page">
+  <!-- Intro message to ask the user to fill in our form-->
+  <div class="landing-intro">
+    <h1>Welkom, {{ username }}!</h1>
+    <p>Bereid je voor op een puzzelavontuur en word een meester in database-normalisatie!</p>
+    <p> Verdien badges voor elke vraag die je afrondt<i> (zonder te spieken)</i></p>
+    <br>
+    <a href="https://ls.ou.nl/145668?newtest=Y&lang=nl" target="_blank" rel="noopener noreferrer"
+      class="btn btn-primary">
+      <b class="w450">Geef je mening!😄 </b>
+    </a>
+  </div>
+
+  <br>
+
+  <!-- Main Grid Container -->
+  <div class="landing-grid">
+
+    <!-- Start Adventure card -->
+    <div class="card start-game-card">
+      <div class="card-header">
+        <h2>Start Avontuur</h2>
+        <div class="progress-placeholder"></div>
+      </div>
+      <div class="card-body">
+        <p>Klik hier om te beginnen bij het begin.</p>
+        <button class="btn btn-secondary green" (click)="startGame()"><b>Start</b></button>
+
+        <button class="btn btn-secondary green" (click)="toggleOverview()"><b>Vragenoverzicht</b></button>
+
+      </div>
+    </div>
+
+    <!-- Achievements Card -->
+    <div class="card achievements-card">
+      <div class="card-header">
+        <h2>Badges</h2>
+        <div class="progress-circle achievements-progress">
+          <span>{{ achievements.length }}/5</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="badge-text">Verdien een badge per vraag die je afrondt! <i>(Er zijn 5 badges in deze bèta-fase)</i>
+        </p>
+        <div class="achievements-grid">
+          <!-- Loop through the 5 badge IDs -->
+          <div class="achievement" *ngFor="let badgeId of [1,2,3,4,5]">
+            <img [src]="'assets/images/badges/' + badgeId + '.png'" alt="Badge {{ badgeId }}" [ngClass]="{
+               'unlocked': achievements.includes(badgeId),
+               'locked': !achievements.includes(badgeId)
+             }" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue Card -->
+    <div class="card continue-card">
+      <div class="card-header">
+        <h2>Hervat</h2>
+        <div class="progress-placeholder"></div>
+      </div>
+      <div class="card-body">
+        <p>Een vraag niet afgerond? Keer terug naar waar je gebleven was</p>
+        <button class="btn btn-yellow" (click)="continueGame()"><b>Hervat</b></button>
+      </div>
+    </div>
+
+    <!-- Tutorial/ Visual Novel Card -->
+    <div class="card university-card">
+      <div class="card-header">
+        <h2>Bijles</h2>
+        <div class="progress-placeholder"></div>
+      </div>
+      <div class="card-body">
+        <p>Verfris je normalisatie-kennis en ga op bijles met een visual novel experience.</p>
+        <button class="btn btn-secondary" (click)="openUniversityModal()"><b>Ga op Bijles</b></button>
+      </div>
+    </div>
+
+    <!-- Visual Novel Overlay Modal -->
+    <div id="myModal" class="modal" *ngIf="showUniversityModal">
+      <div class="modal-content">
+        <span class="close" (click)="closeUniversityModal()">&times;</span>
+        <app-visual-novel (closeModal)="closeUniversityModal()"></app-visual-novel>
+      </div>
+    </div>
+
+    <!-- Question Overlay Modal -->
+    <div *ngIf="showQuestionOverviewModal" class="info-modal-overlay" (click)="closeOverview()">
+      <div class="info-modal-content question-modal" (click)="$event.stopPropagation()">
+        <h2 class="info-title">📋 Vragenoverzicht</h2>
+        <p class="info-description">Selecteer een vraag om te beginnen:</p>
+
+        <div class="question-list-scrollable">
+          <div class="question-list">
+            <div class="question-card" *ngFor="let q of questions">
+              <h3>Vraag {{ q.id }}</h3>
+              <p><strong>Moeilijkheid:</strong> {{ q.difficulty }}</p>
+              <p>{{ q.summary }}</p>
+              <button class="btn btn-primary" (click)="goToQuestion(q.id)">Ga naar vraag</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-buttons">
+          <button class="btn btn-primary" (click)="closeOverview()">Sluiten</button>
+        </div>
+      </div>
+    </div>
