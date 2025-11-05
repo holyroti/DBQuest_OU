@@ -1,4 +1,4 @@
-# 🎮 Welcome to DBQuest — Gamified Parsons Problems Tool
+# Welcome to DBQuest — Gamified Parsons Problems Tool
 
 Lets get started setting up this project!
 
@@ -12,5 +12,6 @@ Lets get started setting up this project!
 6. The angular application should compile
 
 7. Do notice that no data will be loaded, since your database will be empty! Please refer to the SQL repositories containing the SQL scripts and feel free to change them according to your educational purpose.
+
 
 
